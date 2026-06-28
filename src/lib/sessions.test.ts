@@ -43,4 +43,14 @@ describe('reconstructResponse', () => {
     expect(r.per_retriever[0].retriever).toBe('BM25')
     expect(r.shared_docs.docA).toEqual(['BM25', 'qwen'])
   })
+
+  it('prefers the stored payload.hits over the citations fallback', () => {
+    const r = reconstructResponse(
+      turn({ payload: { citations: { docA: 0.9 }, hits: [['docX', 2.1], ['docY', 1.0]] } }),
+    )
+    expect(r.hits).toEqual([
+      ['docX', 2.1],
+      ['docY', 1.0],
+    ])
+  })
 })
