@@ -11,7 +11,7 @@
   --color-teal: #1e7a72; /* magpie tail sheen accent */
   --color-line: #e7d9cb; /* hairline borders */
 
-  --font-display: Georgia, "Times New Roman", serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 

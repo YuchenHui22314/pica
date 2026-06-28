@@ -8,6 +8,7 @@ import { Composer } from './components/Composer'
 import { AssistantTurn, UserBubble } from './components/MessageTurn'
 import { ModelPanel } from './components/ModelPanel'
 import { SessionSidebar } from './components/SessionSidebar'
+import { PtkbPanel } from './components/PtkbPanel'
 
 type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string }
 
@@ -21,6 +22,9 @@ export default function App() {
   const [showModels, setShowModels] = useState(false)
   const [reloadSignal, setReloadSignal] = useState(0)
   const [queryType, setQueryType] = useState<QueryType>('raw')
+  const [showPtkb, setShowPtkb] = useState(false)
+  const [extractPtkb, setExtractPtkb] = useState(false)
+  const [ptkbReload, setPtkbReload] = useState(0)
   const inFlight = useRef(false)
   const nextId = useRef(0)
   const convGen = useRef(0) // bumped on every conversation switch; guards stale async commits
@@ -110,9 +114,13 @@ export default function App() {
         retrievers,
         generation: chooseGeneration(status),
         session_id: sid ?? undefined,
+        extract_ptkb: extractPtkb,
       })
       update({ res })
-      if (res.persisted && gen === convGen.current) setReloadSignal((n) => n + 1)
+      if (res.persisted && gen === convGen.current) {
+        setReloadSignal((n) => n + 1)
+        if (extractPtkb) setPtkbReload((n) => n + 1) // a turn may have learned new profile facts
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setUser(null)
@@ -134,6 +142,7 @@ export default function App() {
     setMsgs([])
     setActiveSessionId(null)
     setShowModels(false)
+    setShowPtkb(false)
   }
 
   if (checking) return <div className="grid min-h-full place-items-center text-muted">…</div>
@@ -172,6 +181,14 @@ export default function App() {
               </option>
             ))}
           </select>
+          <button
+            onClick={() => setShowPtkb((v) => !v)}
+            className={`rounded-lg border px-3 py-1 text-sm transition ${
+              showPtkb ? 'border-clay/50 bg-clay/5' : 'border-line bg-paper hover:bg-cream'
+            }`}
+          >
+            Profile
+          </button>
           {models && models.resident.length === 0 && (
             <span className="text-xs text-clay">← activate a model to search</span>
           )}
@@ -205,6 +222,15 @@ export default function App() {
 
         <Composer onSend={send} busy={busy} />
       </div>
+
+      {showPtkb && (
+        <PtkbPanel
+          reloadSignal={ptkbReload}
+          extractEnabled={extractPtkb}
+          onToggleExtract={setExtractPtkb}
+          onClose={() => setShowPtkb(false)}
+        />
+      )}
 
       {showModels && (
         <ModelPanel onClose={() => setShowModels(false)} onActivated={(m) => setModels(m)} />
