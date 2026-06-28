@@ -5,14 +5,23 @@ import type { ModelsStatus, RetrieverLeg } from './types'
 //     global dense query-encoder; M2's model panel will surface a per-unit encoder when /models
 //     exposes it, making ANCE-style units correct too);
 //   - a single BM25 leg if any sparse unit is resident (it reads the resident sparse index).
-export function buildSearchLegs(models: ModelsStatus): RetrieverLeg[] {
+// Query-construction options the backend understands (RetrieverSpec.query_type when qr is off).
+export const QUERY_TYPES = [
+  'raw',
+  'full_conversation_dense',
+  'qwen_conversation',
+  'qwen_conversation_ptkb',
+] as const
+export type QueryType = (typeof QUERY_TYPES)[number]
+
+export function buildSearchLegs(models: ModelsStatus, queryType: QueryType = 'raw'): RetrieverLeg[] {
   const kindOf = (name: string) => models.units.find((u) => u.name === name)?.kind
   const legs: RetrieverLeg[] = []
   for (const name of models.resident) {
-    if (kindOf(name) === 'dense') legs.push({ name, query_type: 'raw', unit: name })
+    if (kindOf(name) === 'dense') legs.push({ name, query_type: queryType, unit: name })
   }
   if (models.resident.some((n) => kindOf(n) === 'sparse')) {
-    legs.push({ name: 'BM25', query_type: 'raw' })
+    legs.push({ name: 'BM25', query_type: queryType })
   }
   return legs
 }

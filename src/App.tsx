@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, ApiError, getToken, setToken } from './lib/api'
-import { buildSearchLegs, chooseGeneration } from './lib/retrievers'
+import { buildSearchLegs, chooseGeneration, QUERY_TYPES, type QueryType } from './lib/retrievers'
 import { reconstructResponse } from './lib/sessions'
 import type { ModelsStatus, SearchResponse, Session, User } from './lib/types'
 import { Login } from './components/Login'
@@ -20,6 +20,7 @@ export default function App() {
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null)
   const [showModels, setShowModels] = useState(false)
   const [reloadSignal, setReloadSignal] = useState(0)
+  const [queryType, setQueryType] = useState<QueryType>('raw')
   const inFlight = useRef(false)
   const nextId = useRef(0)
   const convGen = useRef(0) // bumped on every conversation switch; guards stale async commits
@@ -82,7 +83,7 @@ export default function App() {
         update({ error: '无法获取模型状态（后端未连接？）。' })
         return
       }
-      const retrievers = buildSearchLegs(status)
+      const retrievers = buildSearchLegs(status, queryType)
       if (retrievers.length === 0) {
         update({ error: '没有激活的检索器。点右上角 Models 激活一个 unit。' })
         return
@@ -159,6 +160,18 @@ export default function App() {
           >
             Models{models && models.resident.length > 0 ? ` · ${models.resident.length}` : ''}
           </button>
+          <select
+            value={queryType}
+            onChange={(e) => setQueryType(e.target.value as QueryType)}
+            title="query construction (how each retriever's query is built)"
+            className="rounded-lg border border-line bg-paper px-2 py-1 text-xs text-muted outline-none"
+          >
+            {QUERY_TYPES.map((q) => (
+              <option key={q} value={q}>
+                {q}
+              </option>
+            ))}
+          </select>
           {models && models.resident.length === 0 && (
             <span className="text-xs text-clay">← activate a model to search</span>
           )}

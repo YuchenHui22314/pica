@@ -39,6 +39,17 @@ describe('buildSearchLegs', () => {
       { name: 'BM25', query_type: 'raw' },
     ])
   })
+
+  it('applies the chosen query_type to every leg', () => {
+    const m = status(
+      [unit('qrecc_qwen', 'dense'), unit('qrecc_bm25', 'sparse')],
+      ['qrecc_qwen', 'qrecc_bm25'],
+    )
+    expect(buildSearchLegs(m, 'full_conversation_dense')).toEqual([
+      { name: 'qrecc_qwen', query_type: 'full_conversation_dense', unit: 'qrecc_qwen' },
+      { name: 'BM25', query_type: 'full_conversation_dense' },
+    ])
+  })
 })
 
 describe('chooseGeneration', () => {
