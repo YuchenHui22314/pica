@@ -61,11 +61,28 @@ npm run dev                            # http://localhost:5173
 Reach a remote backend (octal40/octal31, no public IP) via the SSH/Cloudflare tunnel described in the
 backend's `docs/DEPLOY.md`, then point the dev proxy (or the deployed app) at it.
 
+## Deploy (one service)
+
+Build the SPA and let the Magpie backend serve it from the **same process** — one URL, no CORS:
+
+```bash
+npm run build                          # -> ./dist
+python server/run_magpie.py            # serves the SPA + API at http://localhost:8500
+```
+
+`run_magpie.py` mounts `./dist` via FastAPI `StaticFiles` **after** the API routes, so `/search`,
+`/models`, … hit the API and every other path serves the SPA. Expose it through the tunnel in the
+backend's `docs/DEPLOY.md`. (Verified: with `dist/` present, `GET /` returns the app and `GET /health`
+/ `GET /models` return JSON on the same port.)
+
 ## Stack
 
-React 19 · Vite · TypeScript · Tailwind v4 · shadcn/ui · [assistant-ui](https://github.com/assistant-ui/assistant-ui)
-(the chat-thread primitives) — custom panels for the per-retriever comparison, citation jump, and PTKB.
-Visual language is a homage to the Anthropic warm-minimal aesthetic.
+React 19 · Vite · TypeScript · Tailwind v4 · Vitest. The conversation thread, per-retriever comparison,
+citation jump, and PTKB panels are **custom** components: [assistant-ui](https://github.com/assistant-ui/assistant-ui)
+was evaluated, but Magpie's per-turn layout (a cited answer + fused passages + side-by-side retriever
+columns + overlap coloring) is bespoke enough that a thin custom thread on Tailwind fit better than its
+runtime. The citation model (inline `[n]` + click-to-source) follows Onyx/Perplexica; the visual
+language is a homage to the Anthropic warm-minimal aesthetic.
 
 ## License
 
