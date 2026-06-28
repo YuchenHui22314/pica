@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Magpie holding a document — Magpie (pica)">
+  <title>Magpie · pica</title>
+  <!-- warm cream backdrop (Anthropic-ish) -->
+  <circle cx="128" cy="128" r="118" fill="#F4ECE3"/>
+  <circle cx="128" cy="128" r="118" fill="none" stroke="#E7D9CB" stroke-width="2.5"/>
+
+  <!-- perch -->
+  <path d="M72 196 q56 16 116 0" fill="none" stroke="#B98E6E" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- long tail, sweeping lower-right, black with a teal sheen -->
+  <polygon points="146,150 176,150 214,206 192,216 134,170" fill="#17181A"/>
+  <polygon points="152,156 174,156 200,200 184,206 142,168" fill="#1E7A72" opacity="0.6"/>
+
+  <!-- body: black upper, white belly -->
+  <ellipse cx="126" cy="150" rx="48" ry="52" fill="#17181A"/>
+  <path d="M92 150 C86 178 104 196 128 196 C150 196 162 178 158 156 C146 174 110 176 96 156 Z" fill="#FFFFFF"/>
+
+  <!-- white shoulder patch (scapular) -->
+  <path d="M132 120 C118 124 112 142 122 156 C140 152 150 132 144 120 Z" fill="#FFFFFF"/>
+
+  <!-- wing tip teal sheen -->
+  <path d="M150 138 C164 144 170 162 162 178 C154 166 146 150 144 138 Z" fill="#1E7A72" opacity="0.55"/>
+
+  <!-- head -->
+  <circle cx="100" cy="104" r="33" fill="#17181A"/>
+  <!-- eye -->
+  <circle cx="92" cy="98" r="7.5" fill="#FFFFFF"/>
+  <circle cx="90" cy="99" r="3.4" fill="#17181A"/>
+
+  <!-- beak (pointing left), holding the document -->
+  <polygon points="70,100 40,107 70,115" fill="#43352B"/>
+  <polygon points="70,107 40,107 70,115" fill="#2C231C"/>
+
+  <!-- document held in the beak: tilted white page, folded corner, text lines (one clay accent) -->
+  <g transform="rotate(-13 40 90)">
+    <rect x="12" y="60" width="46" height="58" rx="5" fill="#FFFFFF" stroke="#E2D3C4" stroke-width="2"/>
+    <path d="M46 60 h12 l-12 12 z" fill="#EFE3D6"/>
+    <line x1="20" y1="78" x2="44" y2="78" stroke="#CBBDAF" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="20" y1="88" x2="50" y2="88" stroke="#CBBDAF" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="20" y1="98" x2="42" y2="98" stroke="#CC785C" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="20" y1="108" x2="48" y2="108" stroke="#CBBDAF" stroke-width="3.2" stroke-linecap="round"/>
+  </g>
+
+  <!-- feet -->
+  <path d="M116 194 l-3 16 M134 194 l3 15" fill="none" stroke="#43352B" stroke-width="4.5" stroke-linecap="round"/>
+</svg>
