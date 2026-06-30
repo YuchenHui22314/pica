@@ -14,15 +14,20 @@ export const QUERY_TYPES = [
 ] as const
 export type QueryType = (typeof QUERY_TYPES)[number]
 
-export function buildSearchLegs(models: ModelsStatus, queryType: QueryType = 'raw'): RetrieverLeg[] {
+// qtByUnit maps a unit name -> its query-formulation (chosen per-retriever in the model panel);
+// missing -> 'raw'. The BM25 leg uses the resident sparse unit's choice.
+export function buildSearchLegs(
+  models: ModelsStatus,
+  qtByUnit: Record<string, QueryType> = {},
+): RetrieverLeg[] {
   const kindOf = (name: string) => models.units.find((u) => u.name === name)?.kind
+  const qt = (name: string): QueryType => qtByUnit[name] ?? 'raw'
   const legs: RetrieverLeg[] = []
   for (const name of models.resident) {
-    if (kindOf(name) === 'dense') legs.push({ name, query_type: queryType, unit: name })
+    if (kindOf(name) === 'dense') legs.push({ name, query_type: qt(name), unit: name })
   }
-  if (models.resident.some((n) => kindOf(n) === 'sparse')) {
-    legs.push({ name: 'BM25', query_type: queryType })
-  }
+  const sparse = models.resident.find((n) => kindOf(n) === 'sparse')
+  if (sparse) legs.push({ name: 'BM25', query_type: qt(sparse) })
   return legs
 }
 

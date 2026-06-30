@@ -9,10 +9,12 @@ export interface User {
 export interface ModelUnit {
   name: string
   kind: string // dense | sparse | splade | reranker | llm
+  corpus?: string | null // clueweb | qrecc | topiocqa | null (reranker is corpus-agnostic)
   resident_ram_gb: number
   load_peak_ram_gb: number
   vram_gb: number
   dtype: string | null
+  query_encoder?: string | null
   available: boolean
 }
 

@@ -40,14 +40,16 @@ describe('buildSearchLegs', () => {
     ])
   })
 
-  it('applies the chosen query_type to every leg', () => {
+  it('applies the per-unit query_type to each leg (BM25 uses the sparse unit choice)', () => {
     const m = status(
       [unit('qrecc_qwen', 'dense'), unit('qrecc_bm25', 'sparse')],
       ['qrecc_qwen', 'qrecc_bm25'],
     )
-    expect(buildSearchLegs(m, 'full_conversation_dense')).toEqual([
+    expect(
+      buildSearchLegs(m, { qrecc_qwen: 'full_conversation_dense', qrecc_bm25: 'qwen_conversation' }),
+    ).toEqual([
       { name: 'qrecc_qwen', query_type: 'full_conversation_dense', unit: 'qrecc_qwen' },
-      { name: 'BM25', query_type: 'full_conversation_dense' },
+      { name: 'BM25', query_type: 'qwen_conversation' },
     ])
   })
 })

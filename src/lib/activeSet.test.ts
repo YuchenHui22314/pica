@@ -46,4 +46,22 @@ describe('nextActiveSet', () => {
     expect(out).toContain('reranker_qwen3')
     expect(out).toContain('vllm')
   })
+
+  it('enforces one corpus: switching corpus drops other-corpus retrieval but keeps the reranker', () => {
+    const uc = (name: string, kind: string, corpus: string | null): ModelUnit => ({
+      ...u(name, kind),
+      corpus,
+    })
+    const cu = [
+      uc('qrecc_ance', 'dense', 'qrecc'),
+      uc('qrecc_bm25', 'sparse', 'qrecc'),
+      uc('clueweb_ance', 'dense', 'clueweb'),
+      uc('reranker', 'reranker', null),
+    ]
+    const out = nextActiveSet(['qrecc_ance', 'qrecc_bm25', 'reranker'], 'clueweb_ance', cu)
+    expect(out).toContain('clueweb_ance')
+    expect(out).toContain('reranker') // corpus-agnostic -> kept
+    expect(out).not.toContain('qrecc_ance') // other-corpus retrieval -> dropped
+    expect(out).not.toContain('qrecc_bm25')
+  })
 })
