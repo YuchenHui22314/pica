@@ -106,7 +106,7 @@ export function PtkbPanel({
                 />
               ) : (
                 <div className="flex items-start gap-1">
-                  <span className="flex-1">{it.statement}</span>
+                  <span className="min-w-0 flex-1 break-words">{it.statement}</span>
                   <button
                     onClick={() => {
                       setEditing(it.id)

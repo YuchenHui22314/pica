@@ -1,7 +1,10 @@
 import { useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent } from 'react'
 
-// A draggable, collapsible floating card (drag by its header). Used for the user-profile panel so it
-// floats over the conversation and the user can move it wherever they like.
+// A draggable + RESIZABLE floating card (drag by its header, resize from the bottom-right grip).
+// Width/height are intentionally NOT in the controlled `style` object: the browser's native
+// `resize` writes inline width/height, and because React never manages those keys it leaves them
+// alone across re-renders (so a resize sticks while dragging still updates left/top). The body is a
+// bounded flex child, so long content (e.g. a big PTKB list) gets its own scrollbar + wheel.
 export function FloatingProfile({
   title,
   initial,
@@ -14,7 +17,6 @@ export function FloatingProfile({
   children: ReactNode
 }) {
   const [pos, setPos] = useState(initial)
-  const [collapsed, setCollapsed] = useState(false)
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
 
   function onDown(e: ReactMouseEvent) {
@@ -38,8 +40,16 @@ export function FloatingProfile({
 
   return (
     <div
-      className="fixed z-20 flex max-h-[78vh] w-72 flex-col overflow-hidden rounded-2xl bg-paper/95 shadow-xl ring-1 ring-line backdrop-blur"
-      style={{ left: pos.x, top: pos.y }}
+      className="fixed z-20 flex h-[28rem] w-72 flex-col overflow-hidden rounded-2xl bg-paper/95 shadow-xl ring-1 ring-line backdrop-blur"
+      style={{
+        left: pos.x,
+        top: pos.y,
+        resize: 'both',
+        minWidth: 232,
+        minHeight: 180,
+        maxWidth: '92vw',
+        maxHeight: '88vh',
+      }}
     >
       <div
         onMouseDown={onDown}
@@ -47,19 +57,14 @@ export function FloatingProfile({
       >
         <span className="text-muted">⠿</span>
         <span className="text-sm font-medium">{title}</span>
-        <button
-          onClick={() => setCollapsed((c) => !c)}
-          className="ml-auto text-xs text-muted hover:text-ink"
-        >
-          {collapsed ? 'expand' : 'collapse'}
-        </button>
+        <span className="ml-auto text-[0.62rem] text-muted">drag ⠿ · resize ⤡</span>
         {onClose && (
           <button onClick={onClose} className="text-sm text-muted hover:text-ink" title="hide">
             ×
           </button>
         )}
       </div>
-      {!collapsed && <div className="min-h-0 flex-1 overflow-hidden">{children}</div>}
+      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
     </div>
   )
 }
