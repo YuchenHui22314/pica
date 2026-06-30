@@ -26,10 +26,5 @@ export function buildSearchLegs(models: ModelsStatus, queryType: QueryType = 'ra
   return legs
 }
 
-// RAG needs a resident LLM; without one fall back to extractive (stitches passages, no generation).
-export function chooseGeneration(models: ModelsStatus): 'rag' | 'extractive' {
-  const hasLlm = models.resident.some(
-    (n) => models.units.find((u) => u.name === n)?.kind === 'llm',
-  )
-  return hasLlm ? 'rag' : 'extractive'
-}
+// Generation is always RAG now: the server builds the resource-free OpenAI LLM up front, and falls
+// back to extractive itself only if the LLM call errors. So /search always requests rag + citations.

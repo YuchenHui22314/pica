@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildSearchLegs, chooseGeneration } from './retrievers'
+import { buildSearchLegs } from './retrievers'
 import type { ModelsStatus, ModelUnit } from './types'
 
 const unit = (name: string, kind: string): ModelUnit => ({
@@ -49,15 +49,5 @@ describe('buildSearchLegs', () => {
       { name: 'qrecc_qwen', query_type: 'full_conversation_dense', unit: 'qrecc_qwen' },
       { name: 'BM25', query_type: 'full_conversation_dense' },
     ])
-  })
-})
-
-describe('chooseGeneration', () => {
-  it('uses rag when an llm unit is resident', () => {
-    expect(chooseGeneration(status([unit('vllm', 'llm')], ['vllm']))).toBe('rag')
-  })
-
-  it('falls back to extractive without an llm', () => {
-    expect(chooseGeneration(status([unit('d', 'dense')], ['d']))).toBe('extractive')
   })
 })

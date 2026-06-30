@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, ApiError, getToken, setToken } from './lib/api'
-import { buildSearchLegs, chooseGeneration, QUERY_TYPES, type QueryType } from './lib/retrievers'
+import { buildSearchLegs, QUERY_TYPES, type QueryType } from './lib/retrievers'
 import { reconstructResponse } from './lib/sessions'
 import type { ModelsStatus, SearchResponse, Session, User } from './lib/types'
 import { Login } from './components/Login'
@@ -10,7 +10,7 @@ import { ModelPanel } from './components/ModelPanel'
 import { SessionSidebar } from './components/SessionSidebar'
 import { PtkbPanel } from './components/PtkbPanel'
 
-type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string }
+type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string; extractOn?: boolean }
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -75,7 +75,7 @@ export default function App() {
     const gen = convGen.current // pin this conversation; drop commits if it changes mid-flight
     const id = nextId.current++
     const history = msgs.flatMap((m) => (m.res ? [m.utterance, m.res.response] : []))
-    setMsgs((m) => [...m, { id, utterance }])
+    setMsgs((m) => [...m, { id, utterance, extractOn: extractPtkb }])
     const update = (patch: Partial<Msg>) => {
       if (gen !== convGen.current) return
       setMsgs((m) => m.map((x) => (x.id === id ? { ...x, ...patch } : x)))
@@ -112,7 +112,8 @@ export default function App() {
         utterance,
         history,
         retrievers,
-        generation: chooseGeneration(status),
+        generation: 'rag',
+        cite_passages: true,
         session_id: sid ?? undefined,
         extract_ptkb: extractPtkb,
       })
@@ -209,7 +210,16 @@ export default function App() {
               <div key={m.id} className="space-y-3">
                 <UserBubble text={m.utterance} />
                 {m.res ? (
-                  <AssistantTurn res={m.res} turnKey={m.id} />
+                  <>
+                    <AssistantTurn res={m.res} turnKey={m.id} />
+                    {m.extractOn && (
+                      <p className="text-xs italic text-muted">
+                        {m.res.extracted_ptkb && m.res.extracted_ptkb.length > 0
+                          ? `🪶 learned: ${m.res.extracted_ptkb.map((f) => `“${f}”`).join('  ·  ')}`
+                          : '🪶 no new profile facts this turn'}
+                      </p>
+                    )}
+                  </>
                 ) : m.error ? (
                   <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{m.error}</div>
                 ) : (

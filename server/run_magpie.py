@@ -31,7 +31,11 @@ if store.verify_user("admin", ADMIN_PW) is None:
         pass  # 'admin' already exists with a different password
 
 # eager_load=False -> start EMPTY; load indexes on demand via POST /activate (the Magpie model).
-app = create_app(PipelineConfig(), eager_load=False, store=store)
+# RAG answers + inline [n] citations via OpenAI gpt-5-mini (key auto-found in env as
+# openai_key / OPENAI_API_KEY); the resource-free client is built at startup (setup_remote_llm_if_needed)
+# so /search generation='rag' is serviceable without activating an 'llm' capacity unit.
+config = PipelineConfig(llm_backend="openai", llm_model="gpt-5-mini", cite_passages=True)
+app = create_app(config, eager_load=False, store=store)
 
 # Serve the built SPA from the same process if `npm run build` has produced ./dist (one URL, no
 # CORS). Mounted AFTER the API routes, so /search, /models, ... still hit the API; everything else

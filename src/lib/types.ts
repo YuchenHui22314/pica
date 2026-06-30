@@ -73,6 +73,7 @@ export interface SearchResponse {
   reformulations: Record<string, string[]> // leg label -> query string(s)
   citation_spans: CitationSpan[]
   persisted: boolean
+  extracted_ptkb?: string[] // NEW user-profile facts learned this turn (absent on reloaded turns)
 }
 
 export interface Session {
