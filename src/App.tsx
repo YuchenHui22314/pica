@@ -10,6 +10,7 @@ import { ModelPanel } from './components/ModelPanel'
 import { SessionSidebar } from './components/SessionSidebar'
 import { PtkbPanel } from './components/PtkbPanel'
 import { PassageModal } from './components/PassageModal'
+import { FloatingProfile } from './components/FloatingProfile'
 
 type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string; extractOn?: boolean }
 
@@ -26,6 +27,7 @@ export default function App() {
   const [extractPtkb, setExtractPtkb] = useState(true) // auto-learn PTKB on by default
   const [ptkbReload, setPtkbReload] = useState(0)
   const [viewDocid, setViewDocid] = useState<string | null>(null)
+  const [showPtkb, setShowPtkb] = useState(true)
   const inFlight = useRef(false)
   const nextId = useRef(0)
   const convGen = useRef(0) // bumped on every conversation switch; guards stale async commits
@@ -158,24 +160,15 @@ export default function App() {
         reloadSignal={reloadSignal}
       />
 
-      {/* Left companion: a big magpie + the user profile, fixed while the conversation scrolls. */}
-      <aside className="hidden w-72 shrink-0 flex-col border-r border-line bg-paper/30 lg:flex">
-        <div className="p-4">
-          <img src="/rali_pica.png" alt="Magpie" className="w-full rounded-2xl ring-1 ring-line" />
-          <p className="mt-2 text-center text-xs italic text-muted">you&rsquo;re chatting with Magpie</p>
-        </div>
-        <div className="min-h-0 flex-1 border-t border-line">
-          <PtkbPanel
-            reloadSignal={ptkbReload}
-            extractEnabled={extractPtkb}
-            onToggleExtract={setExtractPtkb}
-          />
-        </div>
-      </aside>
-
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-2 border-b border-line px-4 py-3">
-          <img src="/rali_pica.png" width={30} height={30} alt="" className="rounded" />
+          <img
+            src="/rali_pica_head.png"
+            width={32}
+            height={32}
+            alt=""
+            className="rounded-full bg-white object-cover ring-1 ring-line"
+          />
           <span className="text-lg" style={{ fontFamily: 'var(--font-display)' }}>
             Magpie
           </span>
@@ -184,6 +177,14 @@ export default function App() {
             className="ml-3 rounded-lg border border-line bg-paper px-3 py-1 text-sm transition hover:bg-cream"
           >
             Corpora &amp; models{models && models.resident.length > 0 ? ` · ${models.resident.length}` : ''}
+          </button>
+          <button
+            onClick={() => setShowPtkb((v) => !v)}
+            className={`rounded-lg border px-3 py-1 text-sm transition ${
+              showPtkb ? 'border-clay/50 bg-clay/5' : 'border-line bg-paper hover:bg-cream'
+            }`}
+          >
+            Profile
           </button>
           {models && models.resident.length === 0 && (
             <span className="text-xs text-clay">← activate a model to search</span>
@@ -198,38 +199,48 @@ export default function App() {
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          <div className="mx-auto max-w-3xl space-y-6">
-            {msgs.length === 0 && (
-              <p className="mt-10 text-center text-muted">
-                Ask Magpie anything — it'll fetch the brightest passages.
-              </p>
-            )}
-            {msgs.map((m) => (
-              <div key={m.id} className="space-y-3">
-                <UserBubble text={m.utterance} />
-                {m.res ? (
-                  <>
-                    <AssistantTurn res={m.res} onViewDoc={setViewDocid} />
-                    {m.extractOn && (
-                      <p className="text-xs italic text-muted">
-                        {m.res.extracted_ptkb && m.res.extracted_ptkb.length > 0
-                          ? `🪶 learned: ${m.res.extracted_ptkb.map((f) => `“${f}”`).join('  ·  ')}`
-                          : '🪶 no new profile facts this turn'}
-                      </p>
-                    )}
-                  </>
-                ) : m.error ? (
-                  <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{m.error}</div>
-                ) : (
-                  <div className="text-sm text-muted">searching…</div>
-                )}
-              </div>
-            ))}
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-5 flex items-end gap-3">
+              <img src="/rali_pica.png" alt="Magpie" className="h-28 w-auto" />
+              <p className="mb-3 text-sm italic text-muted">you&rsquo;re chatting with Magpie</p>
+            </div>
+            <div className="space-y-6">
+              {msgs.length === 0 && (
+                <p className="text-muted">Ask Magpie anything — it&rsquo;ll fetch the brightest passages.</p>
+              )}
+              {msgs.map((m) => (
+                <div key={m.id} className="space-y-3">
+                  <UserBubble text={m.utterance} />
+                  {m.res ? (
+                    <AssistantTurn res={m.res} onViewDoc={setViewDocid} extractOn={m.extractOn} />
+                  ) : m.error ? (
+                    <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{m.error}</div>
+                  ) : (
+                    <div className="text-sm text-muted">searching…</div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         <Composer onSend={send} busy={busy} />
       </div>
+
+      {showPtkb && (
+        <FloatingProfile
+          title="User profile"
+          initial={{ x: 288, y: 96 }}
+          onClose={() => setShowPtkb(false)}
+        >
+          <PtkbPanel
+            reloadSignal={ptkbReload}
+            extractEnabled={extractPtkb}
+            onToggleExtract={setExtractPtkb}
+            showHeader={false}
+          />
+        </FloatingProfile>
+      )}
 
       {showModels && (
         <ModelPanel

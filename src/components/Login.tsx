@@ -31,8 +31,8 @@ export function Login({ onLoggedIn }: { onLoggedIn: (user: User) => void }) {
         onSubmit={submit}
         className="w-full max-w-md rounded-2xl bg-paper p-8 shadow-sm ring-1 ring-line"
       >
-        <img src="/rali_pica.png" width={168} alt="Magpie" className="mx-auto rounded-xl" />
-        <h1 className="mt-4 text-center text-5xl" style={{ fontFamily: 'var(--font-display)' }}>
+        <img src="/rali_pica.png" width={132} alt="Magpie" className="mx-auto" />
+        <h1 className="mt-3 text-center text-4xl" style={{ fontFamily: 'var(--font-display)' }}>
           Magpie
         </h1>
         <p className="mt-3 text-center text-sm leading-relaxed text-muted">
