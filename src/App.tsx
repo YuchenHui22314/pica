@@ -9,6 +9,7 @@ import { AssistantTurn, UserBubble } from './components/MessageTurn'
 import { ModelPanel } from './components/ModelPanel'
 import { SessionSidebar } from './components/SessionSidebar'
 import { PtkbPanel } from './components/PtkbPanel'
+import { PassageModal } from './components/PassageModal'
 
 type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string; extractOn?: boolean }
 
@@ -25,6 +26,7 @@ export default function App() {
   const [showPtkb, setShowPtkb] = useState(false)
   const [extractPtkb, setExtractPtkb] = useState(false)
   const [ptkbReload, setPtkbReload] = useState(0)
+  const [viewDocid, setViewDocid] = useState<string | null>(null)
   const inFlight = useRef(false)
   const nextId = useRef(0)
   const convGen = useRef(0) // bumped on every conversation switch; guards stale async commits
@@ -211,7 +213,7 @@ export default function App() {
                 <UserBubble text={m.utterance} />
                 {m.res ? (
                   <>
-                    <AssistantTurn res={m.res} turnKey={m.id} />
+                    <AssistantTurn res={m.res} turnKey={m.id} onViewDoc={setViewDocid} />
                     {m.extractOn && (
                       <p className="text-xs italic text-muted">
                         {m.res.extracted_ptkb && m.res.extracted_ptkb.length > 0
@@ -245,6 +247,8 @@ export default function App() {
       {showModels && (
         <ModelPanel onClose={() => setShowModels(false)} onActivated={(m) => setModels(m)} />
       )}
+
+      {viewDocid && <PassageModal docid={viewDocid} onClose={() => setViewDocid(null)} />}
     </div>
   )
 }

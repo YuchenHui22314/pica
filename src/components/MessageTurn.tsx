@@ -11,7 +11,15 @@ export function UserBubble({ text }: { text: string }) {
   )
 }
 
-export function AssistantTurn({ res, turnKey }: { res: SearchResponse; turnKey: number | string }) {
+export function AssistantTurn({
+  res,
+  turnKey,
+  onViewDoc,
+}: {
+  res: SearchResponse
+  turnKey: number | string
+  onViewDoc?: (docid: string) => void
+}) {
   const cited = new Set(res.citation_spans.map((s) => s.docid))
   const [flash, setFlash] = useState<string | null>(null)
   const flashTimer = useRef<number | undefined>(undefined)
@@ -43,7 +51,9 @@ export function AssistantTurn({ res, turnKey }: { res: SearchResponse; turnKey: 
               <li
                 key={`${docid}-${i}`}
                 id={docElemId(docid)}
-                className={`rounded-lg border px-3 py-2 text-sm transition ${
+                onClick={() => onViewDoc?.(docid)}
+                title="view passage text"
+                className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition hover:border-clay/40 ${
                   cited.has(docid) ? 'border-clay/40 bg-clay/5' : 'border-line bg-cream'
                 } ${flash === docid ? 'ring-2 ring-clay' : ''}`}
               >
@@ -61,7 +71,7 @@ export function AssistantTurn({ res, turnKey }: { res: SearchResponse; turnKey: 
         </div>
       )}
 
-      <RetrieverPanels res={res} onCite={scrollToDoc} />
+      <RetrieverPanels res={res} onCite={onViewDoc} />
     </div>
   )
 }

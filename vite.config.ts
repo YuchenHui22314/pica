@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 // the root, so DEV (proxied) and PROD (M5: the backend serves the static SPA) behave identically —
 // no /api prefix, no rewrite, no env juggling.
 const BACKEND = 'http://localhost:8500'
-const API_PREFIXES = ['/search', '/models', '/activate', '/auth', '/sessions', '/ptkb', '/health']
+const API_PREFIXES = ['/search', '/models', '/activate', '/auth', '/sessions', '/ptkb', '/health', '/doc']
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],

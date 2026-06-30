@@ -71,6 +71,10 @@ export const api = {
   // search
   search: (body: SearchRequest) => req<SearchResponse>('/search', post(body)),
 
+  // passage text (for the 'view passage' modal); needs a resident doc-fetch/sparse unit (409 else)
+  doc: (docid: string) =>
+    req<{ docid: string; text: string }>('/doc?docid=' + encodeURIComponent(docid)),
+
   // sessions
   sessions: () => req<Session[]>('/sessions'),
   createSession: (title: string) => req<{ id: number; title: string }>('/sessions', post({ title })),
