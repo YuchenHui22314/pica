@@ -13,7 +13,7 @@ export function Composer({ onSend, busy }: { onSend: (text: string) => void; bus
 
   return (
     <div className="border-t border-line bg-cream/80 backdrop-blur">
-      <form onSubmit={submit} className="mx-auto flex max-w-6xl items-end gap-2 p-4">
+      <form onSubmit={submit} className="mx-auto flex max-w-5xl items-end gap-2 p-4">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}

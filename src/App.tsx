@@ -205,13 +205,15 @@ export default function App() {
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-4">
-              <img src="/rali_pica.png" alt="Magpie" className="h-52 w-auto" />
-              <p className="pl-2 text-sm italic text-muted">you&rsquo;re chatting with Magpie~</p>
-            </div>
-            <div className="space-y-6">
+        <div className="relative flex-1 overflow-hidden">
+          {/* Sticky background magpie: pinned to the TOP-LEFT (next to the sidebar), fills the left
+              whitespace of the conversation, and stays put while the conversation scrolls. */}
+          <div className="pointer-events-none absolute left-2 top-3 z-0 w-60 select-none">
+            <img src="/rali_pica.png" alt="" className="w-full" />
+            <p className="pl-2 text-sm italic text-muted">you&rsquo;re chatting with Magpie~</p>
+          </div>
+          <div className="absolute inset-0 z-10 overflow-y-auto px-4 py-6">
+            <div className="mx-auto max-w-5xl space-y-6">
               {msgs.length === 0 && (
                 <p className="text-muted">Ask Magpie anything — it&rsquo;ll fetch the brightest passages.</p>
               )}
