@@ -23,7 +23,6 @@ export default function App() {
   const [showModels, setShowModels] = useState(false)
   const [reloadSignal, setReloadSignal] = useState(0)
   const [legQueryTypes, setLegQueryTypes] = useState<Record<string, QueryType>>({})
-  const [showPtkb, setShowPtkb] = useState(false)
   const [extractPtkb, setExtractPtkb] = useState(true) // auto-learn PTKB on by default
   const [ptkbReload, setPtkbReload] = useState(0)
   const [viewDocid, setViewDocid] = useState<string | null>(null)
@@ -145,7 +144,6 @@ export default function App() {
     setMsgs([])
     setActiveSessionId(null)
     setShowModels(false)
-    setShowPtkb(false)
   }
 
   if (checking) return <div className="grid min-h-full place-items-center text-muted">…</div>
@@ -160,6 +158,21 @@ export default function App() {
         reloadSignal={reloadSignal}
       />
 
+      {/* Left companion: a big magpie + the user profile, fixed while the conversation scrolls. */}
+      <aside className="hidden w-72 shrink-0 flex-col border-r border-line bg-paper/30 lg:flex">
+        <div className="p-4">
+          <img src="/rali_pica.png" alt="Magpie" className="w-full rounded-2xl ring-1 ring-line" />
+          <p className="mt-2 text-center text-xs italic text-muted">you&rsquo;re chatting with Magpie</p>
+        </div>
+        <div className="min-h-0 flex-1 border-t border-line">
+          <PtkbPanel
+            reloadSignal={ptkbReload}
+            extractEnabled={extractPtkb}
+            onToggleExtract={setExtractPtkb}
+          />
+        </div>
+      </aside>
+
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-2 border-b border-line px-4 py-3">
           <img src="/rali_pica.png" width={30} height={30} alt="" className="rounded" />
@@ -172,20 +185,15 @@ export default function App() {
           >
             Corpora &amp; models{models && models.resident.length > 0 ? ` · ${models.resident.length}` : ''}
           </button>
-          <button
-            onClick={() => setShowPtkb((v) => !v)}
-            className={`rounded-lg border px-3 py-1 text-sm transition ${
-              showPtkb ? 'border-clay/50 bg-clay/5' : 'border-line bg-paper hover:bg-cream'
-            }`}
-          >
-            Profile
-          </button>
           {models && models.resident.length === 0 && (
             <span className="text-xs text-clay">← activate a model to search</span>
           )}
           <span className="ml-auto text-sm text-muted">{user.username}</span>
-          <button onClick={signOut} className="text-sm text-muted hover:text-ink">
-            sign out
+          <button
+            onClick={signOut}
+            className="rounded-lg border border-line bg-paper px-3 py-1 text-sm text-muted transition hover:bg-cream hover:text-ink"
+          >
+            Sign out
           </button>
         </header>
 
@@ -201,7 +209,7 @@ export default function App() {
                 <UserBubble text={m.utterance} />
                 {m.res ? (
                   <>
-                    <AssistantTurn res={m.res} turnKey={m.id} onViewDoc={setViewDocid} />
+                    <AssistantTurn res={m.res} onViewDoc={setViewDocid} />
                     {m.extractOn && (
                       <p className="text-xs italic text-muted">
                         {m.res.extracted_ptkb && m.res.extracted_ptkb.length > 0
@@ -222,15 +230,6 @@ export default function App() {
 
         <Composer onSend={send} busy={busy} />
       </div>
-
-      {showPtkb && (
-        <PtkbPanel
-          reloadSignal={ptkbReload}
-          extractEnabled={extractPtkb}
-          onToggleExtract={setExtractPtkb}
-          onClose={() => setShowPtkb(false)}
-        />
-      )}
 
       {showModels && (
         <ModelPanel

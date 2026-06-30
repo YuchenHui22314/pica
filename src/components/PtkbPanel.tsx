@@ -11,7 +11,7 @@ export function PtkbPanel({
   reloadSignal: number
   extractEnabled: boolean
   onToggleExtract: (on: boolean) => void
-  onClose: () => void
+  onClose?: () => void
 }) {
   const [items, setItems] = useState<PtkbItem[]>([])
   const [draft, setDraft] = useState('')
@@ -59,12 +59,14 @@ export function PtkbPanel({
   }
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l border-line bg-paper/40">
+    <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
         <span className="text-sm font-medium">User profile</span>
-        <button onClick={onClose} className="ml-auto text-sm text-muted hover:text-ink">
-          close
-        </button>
+        {onClose && (
+          <button onClick={onClose} className="ml-auto text-sm text-muted hover:text-ink">
+            close
+          </button>
+        )}
       </div>
 
       <label className="flex cursor-pointer items-center gap-2 border-b border-line px-4 py-2 text-xs text-muted">
@@ -143,6 +145,6 @@ export function PtkbPanel({
           </button>
         </div>
       </div>
-    </aside>
+    </div>
   )
 }
