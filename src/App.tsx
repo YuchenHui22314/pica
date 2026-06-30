@@ -24,7 +24,7 @@ export default function App() {
   const [reloadSignal, setReloadSignal] = useState(0)
   const [queryType, setQueryType] = useState<QueryType>('raw')
   const [showPtkb, setShowPtkb] = useState(false)
-  const [extractPtkb, setExtractPtkb] = useState(false)
+  const [extractPtkb, setExtractPtkb] = useState(true) // auto-learn PTKB on by default
   const [ptkbReload, setPtkbReload] = useState(0)
   const [viewDocid, setViewDocid] = useState<string | null>(null)
   const inFlight = useRef(false)

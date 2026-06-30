@@ -34,7 +34,10 @@ if store.verify_user("admin", ADMIN_PW) is None:
 # RAG answers + inline [n] citations via OpenAI gpt-5-mini (key auto-found in env as
 # openai_key / OPENAI_API_KEY); the resource-free client is built at startup (setup_remote_llm_if_needed)
 # so /search generation='rag' is serviceable without activating an 'llm' capacity unit.
-config = PipelineConfig(llm_backend="openai", llm_model="gpt-5-mini", cite_passages=True)
+# reasoning_effort="minimal": RAG is passage synthesis, not hard reasoning — gpt-5-mini's default
+# reasoning made answers take ~7s+ (tens of seconds on harder queries); minimal keeps it snappy.
+config = PipelineConfig(llm_backend="openai", llm_model="gpt-5-mini", cite_passages=True,
+                        llm_reasoning_effort="minimal")
 app = create_app(config, eager_load=False, store=store)
 
 # Serve the built SPA from the same process if `npm run build` has produced ./dist (one URL, no
