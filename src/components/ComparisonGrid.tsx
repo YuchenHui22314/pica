@@ -12,18 +12,19 @@ function hueOf(cell: GridCell, theme: number): number {
 
 // Soft, low-saturation gradient (Anthropic-muted): rank 1 deepest -> rank N palest.
 function cellStyle(cell: GridCell, theme: number, topN: number): CSSProperties {
+  // lightness is determined ONLY by rank (rank 1 deepest -> rank N palest) so the gradient stays
+  // monotonic; cited is shown by a border + bold, NOT by darkening (which broke the gradient).
   const t = Math.min(1, cell.shade / Math.max(1, topN - 1))
   const hue = hueOf(cell, theme)
   const sat = cell.mode === 'canonical' ? 60 : 38
-  let light = 60 + t * 30
-  if (cell.cited) light -= 16
+  const light = 50 + t * 38
   const s: CSSProperties = {
     backgroundColor: `hsl(${hue} ${sat}% ${light}%)`,
     color: light < 56 ? '#faf9f5' : '#2b2b28',
   }
   if (cell.cited) {
     s.fontWeight = 700
-    s.border = `2px solid hsl(${hue} ${Math.min(72, sat + 20)}% 30%)` // darker same-hue border = cited
+    s.border = `2px solid hsl(${hue} ${Math.min(72, sat + 20)}% 28%)` // darker same-hue border = cited
   }
   return s
 }

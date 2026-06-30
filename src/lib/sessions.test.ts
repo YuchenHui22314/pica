@@ -32,6 +32,7 @@ describe('reconstructResponse', () => {
           per_retriever: [{ retriever: 'BM25', hits: [['docA', 1.2]] }],
           shared_docs: { docA: ['BM25', 'qwen'] },
           reformulations: { qwen: ['blue sky'] },
+          extracted_ptkb: ['I like blue skies.'],
         },
       }),
     )
@@ -42,6 +43,7 @@ describe('reconstructResponse', () => {
     expect(r.citation_spans).toHaveLength(1)
     expect(r.per_retriever[0].retriever).toBe('BM25')
     expect(r.shared_docs.docA).toEqual(['BM25', 'qwen'])
+    expect(r.extracted_ptkb).toEqual(['I like blue skies.']) // restored for the reloaded 🪶 line
   })
 
   it('prefers the stored payload.hits over the citations fallback', () => {

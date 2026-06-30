@@ -57,7 +57,14 @@ export default function App() {
       const turns = await api.sessionTurns(s.id)
       if (gen !== convGen.current) return // a newer switch won; drop this stale load
       nextId.current = turns.reduce((mx, t) => Math.max(mx, t.id), 0) + 1
-      setMsgs(turns.map((t) => ({ id: t.id, utterance: t.utterance, res: reconstructResponse(t) })))
+      setMsgs(
+        turns.map((t) => ({
+          id: t.id,
+          utterance: t.utterance,
+          res: reconstructResponse(t),
+          extractOn: t.payload != null && 'extracted_ptkb' in (t.payload as object),
+        })),
+      )
     } catch {
       if (gen === convGen.current) setMsgs([])
     }
@@ -200,9 +207,9 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-5 flex items-end gap-3">
-              <img src="/rali_pica.png" alt="Magpie" className="h-28 w-auto" />
-              <p className="mb-3 text-sm italic text-muted">you&rsquo;re chatting with Magpie</p>
+            <div className="mb-4">
+              <img src="/rali_pica.png" alt="Magpie" className="h-52 w-auto" />
+              <p className="pl-2 text-sm italic text-muted">you&rsquo;re chatting with Magpie~</p>
             </div>
             <div className="space-y-6">
               {msgs.length === 0 && (

@@ -16,6 +16,7 @@ export function reconstructResponse(turn: Turn): SearchResponse {
     shared_docs: (p.shared_docs as Record<string, string[]>) ?? {},
     reformulations: (p.reformulations as Record<string, string[]>) ?? {},
     citation_spans: (p.citation_spans as CitationSpan[]) ?? [],
+    extracted_ptkb: (p.extracted_ptkb as string[]) ?? [],
     persisted: true,
   }
 }
