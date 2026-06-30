@@ -162,7 +162,7 @@ export default function App() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-2 border-b border-line px-4 py-3">
-          <img src="/pica-logo.svg" width={28} height={28} alt="" />
+          <img src="/rali_pica.png" width={30} height={30} alt="" className="rounded" />
           <span className="text-lg" style={{ fontFamily: 'var(--font-display)' }}>
             Magpie
           </span>
@@ -170,7 +170,7 @@ export default function App() {
             onClick={() => setShowModels(true)}
             className="ml-3 rounded-lg border border-line bg-paper px-3 py-1 text-sm transition hover:bg-cream"
           >
-            Models{models && models.resident.length > 0 ? ` · ${models.resident.length}` : ''}
+            Corpora &amp; models{models && models.resident.length > 0 ? ` · ${models.resident.length}` : ''}
           </button>
           <button
             onClick={() => setShowPtkb((v) => !v)}

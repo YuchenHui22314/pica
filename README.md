@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/pica-logo.svg" width="140" alt="Magpie logo — a magpie holding a document" />
+<img src="public/rali_pica.png" width="200" alt="Magpie logo — a magpie holding a document" />
 
 # Magpie
 

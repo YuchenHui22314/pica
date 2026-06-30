@@ -115,8 +115,7 @@ export function ModelPanel({
   const rerankers = (models?.units ?? []).filter((u) => u.kind === 'reranker')
   const selectedUnits = (models?.units ?? []).filter((u) => desired.includes(u.name))
   const needRam = selectedUnits.reduce((s, u) => s + u.resident_ram_gb, 0)
-  const needVram = selectedUnits.reduce((s, u) => s + u.vram_gb, 0)
-  const freeVramMax = Math.max(0, ...(models?.free_vram_gb ?? [0]))
+  const GPU_TOTAL = 24 // A5000 24G; used_i = total - free_i
 
   const Row = ({ unit }: { unit: ModelUnit }) => {
     const selected = desired.includes(unit.name)
@@ -172,14 +171,19 @@ export function ModelPanel({
         className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-cream shadow-xl ring-1 ring-line"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-line px-5 py-3">
+        <div className="border-b border-line px-5 py-3">
           <span className="text-lg" style={{ fontFamily: 'var(--font-display)' }}>
             Select corpora and models
           </span>
           {models && (
-            <div className="ml-auto flex items-center gap-3">
-              <Gauge label="RAM" used={needRam} free={models.free_ram_gb} />
-              <Gauge label="VRAM" used={needVram} free={freeVramMax} />
+            <div className="mt-2 space-y-1">
+              <Gauge label="RAM need" used={needRam} free={models.free_ram_gb} />
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="text-xs text-muted">VRAM</span>
+                {models.free_vram_gb.map((free, i) => (
+                  <Gauge key={i} label={`G${i}`} used={Math.max(0, GPU_TOTAL - free)} free={GPU_TOTAL} />
+                ))}
+              </div>
             </div>
           )}
         </div>
