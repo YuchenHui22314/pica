@@ -209,7 +209,7 @@ export default function App() {
           {/* Sticky background magpie: pinned to the TOP-LEFT (next to the sidebar), fills the left
               whitespace of the conversation, and stays put while the conversation scrolls. */}
           <div className="pointer-events-none absolute left-0 top-3 z-0 w-60 select-none">
-            <img src="/rali_pica.png" alt="" className="w-full" />
+            <img src="/pica.png" alt="" className="w-full" />
           </div>
           <div className="absolute inset-0 z-10 overflow-y-auto px-4 py-6">
             <div className="mx-auto max-w-5xl space-y-6">
