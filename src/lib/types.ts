@@ -6,6 +6,14 @@ export interface User {
   is_admin: number
 }
 
+// One selectable query-encoder checkpoint of a dense unit (all choices search the SAME doc index).
+export interface EncoderChoice {
+  label: string // formal display name, e.g. "Pers-Conv-Qwen3-0.6B"
+  path: string // checkpoint dir
+  leg_name: string // backend dispatch family: ance | conv-ance | qwen3 | conv-qwen3
+  default_query_type: string
+}
+
 export interface ModelUnit {
   name: string
   kind: string // dense | sparse | splade | reranker | llm
@@ -15,6 +23,7 @@ export interface ModelUnit {
   vram_gb: number
   dtype: string | null
   query_encoder?: string | null
+  query_encoders?: EncoderChoice[] | null // selectable encoder checkpoints (dense units)
   available: boolean
 }
 
@@ -31,6 +40,7 @@ export interface RetrieverLeg {
   qr?: string
   encoder_path?: string | null
   unit?: string | null
+  encoder_label?: string | null // short display label; disambiguates multi-encoder legs on one unit
 }
 
 export interface SearchRequest {

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { nextActiveSet } from '../lib/activeSet'
 import { corpusLabel, modelLabel } from '../lib/labels'
-import { QUERY_TYPES, type QueryType } from '../lib/retrievers'
-import type { ActivatePlan, ActivateStatus, ModelsStatus, ModelUnit } from '../lib/types'
+import { QUERY_TYPES, asQueryType, defaultSelections, type EncoderSel, type QueryType } from '../lib/retrievers'
+import type { ActivatePlan, ActivateStatus, EncoderChoice, ModelsStatus, ModelUnit } from '../lib/types'
 
 const CORPUS_ORDER = ['clueweb', 'qrecc', 'topiocqa']
 const RETRIEVAL_KINDS = ['dense', 'sparse', 'splade']
@@ -38,11 +38,16 @@ export function ModelPanel({
   onActivated,
   queryTypes,
   onQueryType,
+  encoderSels,
+  onEncoderSels,
 }: {
   onClose: () => void
   onActivated: (m: ModelsStatus) => void
-  queryTypes: Record<string, QueryType>
+  queryTypes: Record<string, QueryType> // sparse/splade legs: per-unit query formulation
   onQueryType: (unit: string, qt: QueryType) => void
+  encoderSels: Record<string, EncoderSel[]> // dense legs: selected encoders (each with its own QR)
+  // updater semantics (not a plain setter) so rapid toggles can't clobber each other under batching
+  onEncoderSels: (unit: string, update: (cur: EncoderSel[] | undefined) => EncoderSel[]) => void
 }) {
   const [models, setModels] = useState<ModelsStatus | null>(null)
   const [desired, setDesired] = useState<string[]>([])
@@ -117,47 +122,115 @@ export function ModelPanel({
   const needRam = selectedUnits.reduce((s, u) => s + u.resident_ram_gb, 0)
   const GPU_TOTAL = 24 // A5000 24G; used_i = total - free_i
 
+  const QtSelect = ({ value, onChange }: { value: QueryType; onChange: (qt: QueryType) => void }) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as QueryType)}
+      title="query formulation"
+      onClick={(e) => e.stopPropagation()}
+      className="rounded border border-line bg-cream px-1 py-0.5 text-xs text-muted outline-none"
+    >
+      {QUERY_TYPES.map((q) => (
+        <option key={q} value={q}>
+          {q}
+        </option>
+      ))}
+    </select>
+  )
+
   const Row = ({ unit }: { unit: ModelUnit }) => {
     const selected = desired.includes(unit.name)
     const resident = models!.resident.includes(unit.name)
     const isRetrieval = RETRIEVAL_KINDS.includes(unit.kind)
+    const choices = unit.kind === 'dense' ? (unit.query_encoders ?? []) : []
+    const sels = encoderSels[unit.name] ?? defaultSelections(unit)
+    const selFor = (c: EncoderChoice) => sels.find((s) => s.path === c.path)
+    const toggleEncoder = (c: EncoderChoice) =>
+      onEncoderSels(unit.name, (curM) => {
+        const cur = curM ?? defaultSelections(unit)
+        const has = cur.some((s) => s.path === c.path)
+        if (has && cur.length <= 1) return cur // keep at least one encoder searching
+        const next = has
+          ? cur.filter((s) => s.path !== c.path)
+          : [
+              ...cur,
+              { path: c.path, label: c.label, legName: c.leg_name, queryType: asQueryType(c.default_query_type) },
+            ]
+        // keep the panel's display order
+        next.sort(
+          (a, b) => choices.findIndex((c2) => c2.path === a.path) - choices.findIndex((c2) => c2.path === b.path),
+        )
+        return next
+      })
+    const setEncoderQt = (c: EncoderChoice, qt: QueryType) =>
+      onEncoderSels(unit.name, (curM) =>
+        (curM ?? defaultSelections(unit)).map((s) => (s.path === c.path ? { ...s, queryType: qt } : s)),
+      )
+
     return (
       <div
-        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+        className={`rounded-lg border px-3 py-2 text-sm ${
           selected ? 'border-clay/50 bg-clay/5' : 'border-line bg-paper'
         } ${unit.available ? '' : 'opacity-45'}`}
       >
-        <input
-          type="checkbox"
-          checked={selected}
-          disabled={!unit.available || activating}
-          onChange={() => toggle(unit.name)}
-          className="accent-clay"
-        />
-        <span className="font-medium">{modelLabel(unit)}</span>
-        {resident && (
-          <span className="rounded bg-teal/15 px-1.5 text-[0.7em] font-semibold text-teal">resident</span>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={selected}
+            disabled={!unit.available || activating}
+            onChange={() => toggle(unit.name)}
+            className="accent-clay"
+          />
+          <span className="font-medium">{modelLabel(unit)}</span>
+          {resident && (
+            <span className="rounded bg-teal/15 px-1.5 text-[0.7em] font-semibold text-teal">resident</span>
+          )}
+          {!unit.available && <span className="text-xs italic text-muted">currently not supported</span>}
+          {selected && isRetrieval && choices.length === 0 && (
+            <QtSelect
+              value={
+                unit.kind === 'dense'
+                  ? sels[0]?.queryType ?? 'raw'
+                  : queryTypes[unit.name] ?? 'raw'
+              }
+              onChange={(qt) =>
+                unit.kind === 'dense'
+                  ? onEncoderSels(unit.name, () => [{ ...defaultSelections(unit)[0], queryType: qt }])
+                  : onQueryType(unit.name, qt)
+              }
+            />
+          )}
+          <span className="ml-auto text-xs text-muted">
+            {unit.resident_ram_gb >= 1 && `${unit.resident_ram_gb}G`}
+            {unit.vram_gb > 0 && ` · ${unit.vram_gb}G vram`}
+          </span>
+        </div>
+
+        {/* Query-encoder choices: several checkpoints search this SAME index (one grid column each,
+            nearly free — the backend batches them into one corpus pass). Each row has its own QR. */}
+        {selected && choices.length > 0 && (
+          <div className="mt-1.5 space-y-1 border-l-2 border-line pl-3">
+            {choices.map((c) => {
+              const on = !!selFor(c)
+              return (
+                <div key={c.path} className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    disabled={activating}
+                    onChange={() => toggleEncoder(c)}
+                    className="accent-teal"
+                    title={c.path}
+                  />
+                  <span className={on ? 'text-ink' : 'text-muted'}>{c.label}</span>
+                  {on && (
+                    <QtSelect value={selFor(c)!.queryType} onChange={(qt) => setEncoderQt(c, qt)} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
         )}
-        {!unit.available && <span className="text-xs italic text-muted">currently not supported</span>}
-        {selected && isRetrieval && (
-          <select
-            value={queryTypes[unit.name] ?? 'raw'}
-            onChange={(e) => onQueryType(unit.name, e.target.value as QueryType)}
-            title="query formulation for this retriever"
-            onClick={(e) => e.stopPropagation()}
-            className="rounded border border-line bg-cream px-1 py-0.5 text-xs text-muted outline-none"
-          >
-            {QUERY_TYPES.map((q) => (
-              <option key={q} value={q}>
-                {q}
-              </option>
-            ))}
-          </select>
-        )}
-        <span className="ml-auto text-xs text-muted">
-          {unit.resident_ram_gb >= 1 && `${unit.resident_ram_gb}G`}
-          {unit.vram_gb > 0 && ` · ${unit.vram_gb}G vram`}
-        </span>
       </div>
     )
   }
