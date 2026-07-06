@@ -7,6 +7,13 @@ import type { ActivatePlan, ActivateStatus, EncoderChoice, ModelsStatus, ModelUn
 
 const CORPUS_ORDER = ['clueweb', 'qrecc', 'topiocqa']
 const RETRIEVAL_KINDS = ['dense', 'sparse', 'splade']
+// dense load modes (mirrors IndexFootprint.MODES); labels state the speed/exactness trade
+const MODE_ORDER = ['ram_fp16', 'gpu_resident', 'pq_refine']
+const MODE_LABELS: Record<string, string> = {
+  ram_fp16: 'RAM streaming · exact · slow',
+  gpu_resident: 'GPU-resident · exact · fast',
+  pq_refine: 'PQ64+refine · ≈2% quality tax · fast',
+}
 
 function sameSet(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false
@@ -51,6 +58,8 @@ export function ModelPanel({
 }) {
   const [models, setModels] = useState<ModelsStatus | null>(null)
   const [desired, setDesired] = useState<string[]>([])
+  // per dense unit: how to LOAD it (ram_fp16 streaming | gpu_resident | pq_refine)
+  const [loadModes, setLoadModes] = useState<Record<string, string>>({})
   const [activating, setActivating] = useState(false)
   const [plan, setPlan] = useState<ActivatePlan | null>(null)
   const [progress, setProgress] = useState<ActivateStatus | null>(null)
@@ -65,6 +74,7 @@ export function ModelPanel({
         if (!alive.current) return
         setModels(m)
         setDesired(m.resident)
+        setLoadModes((cur) => ({ ...(m.resident_modes ?? {}), ...cur }))
       })
       .catch((e) => alive.current && setError(e instanceof Error ? e.message : String(e)))
     return () => {
@@ -84,7 +94,12 @@ export function ModelPanel({
     setProgress(null)
     setPlan(null)
     try {
-      const res = await api.activate(desired)
+      const modes = Object.fromEntries(
+        desired
+          .filter((n) => models.units.find((u) => u.name === n)?.kind === 'dense')
+          .map((n) => [n, loadModes[n] ?? 'ram_fp16']),
+      )
+      const res = await api.activate(desired, modes)
       if (alive.current) setPlan(res.plan)
       for (let i = 0; ; i++) {
         if (!alive.current) return
@@ -101,6 +116,7 @@ export function ModelPanel({
       if (!alive.current) return
       setModels(fresh)
       setDesired(fresh.resident)
+      setLoadModes((cur) => ({ ...cur, ...(fresh.resident_modes ?? {}) }))
       onActivated(fresh)
     } catch (err) {
       if (alive.current) setError(err instanceof Error ? err.message : 'activation failed')
@@ -109,7 +125,13 @@ export function ModelPanel({
     }
   }
 
-  const dirty = models ? !sameSet(desired, models.resident) : false
+  const modeDirty = models
+    ? desired.some((n) => {
+        const cur = models.resident_modes?.[n]
+        return cur != null && (loadModes[n] ?? cur) !== cur
+      })
+    : false
+  const dirty = models ? !sameSet(desired, models.resident) || modeDirty : false
   const last = progress?.progress.at(-1)
   const frac = last?.frac ?? (progress?.state === 'done' ? 1 : 0)
 
@@ -183,7 +205,11 @@ export function ModelPanel({
           />
           <span className="font-medium">{modelLabel(unit)}</span>
           {resident && (
-            <span className="rounded bg-teal/15 px-1.5 text-[0.7em] font-semibold text-teal">resident</span>
+            <span className="rounded bg-teal/15 px-1.5 text-[0.7em] font-semibold text-teal">
+              resident{unit.kind === 'dense' && models?.resident_modes?.[unit.name]
+                ? ` · ${models.resident_modes[unit.name]}`
+                : ''}
+            </span>
           )}
           {!unit.available && <span className="text-xs italic text-muted">currently not supported</span>}
           {selected && isRetrieval && choices.length === 0 && (
@@ -205,6 +231,42 @@ export function ModelPanel({
             {unit.vram_gb > 0 && ` · ${unit.vram_gb}G vram`}
           </span>
         </div>
+
+        {/* Load mode: HOW this corpus sits in memory. Feasibility comes from the backend
+            (live free RAM/VRAM); infeasible modes stay listed but disabled with the reason. */}
+        {selected && unit.kind === 'dense' && unit.load_modes && (
+          <div className="mt-1.5 flex items-center gap-2 pl-6 text-xs">
+            <span className="text-muted">load as</span>
+            <select
+              value={loadModes[unit.name] ?? models?.resident_modes?.[unit.name] ?? 'ram_fp16'}
+              disabled={activating}
+              onChange={(e) => setLoadModes((m) => ({ ...m, [unit.name]: e.target.value }))}
+              onClick={(e) => e.stopPropagation()}
+              className="rounded border border-line bg-cream px-1 py-0.5 text-xs outline-none"
+            >
+              {MODE_ORDER.map((mode) => {
+                const info = unit.load_modes![mode]
+                if (!info) return null
+                return (
+                  <option key={mode} value={mode} disabled={!info.fits} title={info.reason}>
+                    {MODE_LABELS[mode]}
+                    {info.vram_gb > 0 ? ` · ${info.vram_gb}G VRAM` : ''}
+                    {!info.fits ? ' — ✗' : ''}
+                  </option>
+                )
+              })}
+            </select>
+            {(() => {
+              const mode = loadModes[unit.name] ?? models?.resident_modes?.[unit.name] ?? 'ram_fp16'
+              const info = unit.load_modes![mode]
+              return info && !info.fits ? (
+                <span className="text-red-600" title={info.reason}>
+                  won&rsquo;t fit: {info.reason}
+                </span>
+              ) : null
+            })()}
+          </div>
+        )}
 
         {/* Query-encoder choices: several checkpoints search this SAME index (one grid column each,
             nearly free — the backend batches them into one corpus pass). Each row has its own QR. */}

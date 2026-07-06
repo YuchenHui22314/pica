@@ -65,7 +65,8 @@ export const api = {
 
   // models / residency
   models: () => req<ModelsStatus>('/models'),
-  activate: (units: string[]) => req<ActivateResponse>('/activate', post({ units })),
+  activate: (units: string[], modes?: Record<string, string>) =>
+    req<ActivateResponse>('/activate', post({ units, modes: modes ?? {} })),
   activateStatus: (taskId: string) => req<ActivateStatus>(`/activate/status/${taskId}`),
 
   // search

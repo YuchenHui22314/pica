@@ -14,6 +14,14 @@ export interface EncoderChoice {
   default_query_type: string
 }
 
+// Feasibility of one dense load mode on the CURRENT machine state (advisory; server re-checks).
+export interface LoadModeInfo {
+  fits: boolean
+  reason: string
+  ram_gb: number
+  vram_gb: number
+}
+
 export interface ModelUnit {
   name: string
   kind: string // dense | sparse | splade | reranker | llm
@@ -24,12 +32,14 @@ export interface ModelUnit {
   dtype: string | null
   query_encoder?: string | null
   query_encoders?: EncoderChoice[] | null // selectable encoder checkpoints (dense units)
+  load_modes?: Record<string, LoadModeInfo> // dense: ram_fp16 | gpu_resident | pq_refine
   available: boolean
 }
 
 export interface ModelsStatus {
   units: ModelUnit[]
   resident: string[]
+  resident_modes?: Record<string, string> // dense unit -> its CURRENT load mode
   free_ram_gb: number
   free_vram_gb: number[]
 }
