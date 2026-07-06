@@ -10,6 +10,7 @@ import { ModelPanel } from './components/ModelPanel'
 import { SessionSidebar } from './components/SessionSidebar'
 import { PtkbPanel } from './components/PtkbPanel'
 import { PassageModal } from './components/PassageModal'
+import { TurnNavigator } from './components/TurnNavigator'
 import { FloatingProfile } from './components/FloatingProfile'
 
 type Msg = { id: number; utterance: string; res?: SearchResponse; error?: string; extractOn?: boolean }
@@ -29,6 +30,7 @@ export default function App() {
   const [extractPtkb, setExtractPtkb] = useState(true) // auto-learn PTKB on by default
   const [ptkbReload, setPtkbReload] = useState(0)
   const [viewDocid, setViewDocid] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
   const [showPtkb, setShowPtkb] = useState(true)
   const inFlight = useRef(false)
   const nextId = useRef(0)
@@ -213,13 +215,13 @@ export default function App() {
           <div className="pointer-events-none absolute left-0 top-3 z-0 w-60 select-none">
             <img src="/pica.png" alt="" className="w-full" />
           </div>
-          <div className="absolute inset-0 z-10 overflow-y-auto px-4 py-6">
+          <div ref={scrollRef} className="absolute inset-0 z-10 overflow-y-auto px-4 py-6">
             <div className="mx-auto max-w-5xl space-y-6">
               {msgs.length === 0 && (
                 <p className="text-muted">Ask Magpie anything — it&rsquo;ll fetch the brightest passages.</p>
               )}
               {msgs.map((m) => (
-                <div key={m.id} className="space-y-3">
+                <div key={m.id} id={`turn-${m.id}`} className="scroll-mt-4 space-y-3">
                   <UserBubble text={m.utterance} />
                   {m.res ? (
                     <AssistantTurn res={m.res} onViewDoc={setViewDocid} extractOn={m.extractOn} />
@@ -232,6 +234,10 @@ export default function App() {
               ))}
             </div>
           </div>
+          <TurnNavigator
+            turns={msgs.map((m) => ({ id: m.id, utterance: m.utterance }))}
+            scrollRef={scrollRef}
+          />
         </div>
 
         <Composer onSend={send} busy={busy} />
