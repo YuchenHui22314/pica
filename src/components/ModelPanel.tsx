@@ -47,6 +47,8 @@ export function ModelPanel({
   onQueryType,
   encoderSels,
   onEncoderSels,
+  searchOff,
+  onSearchOff,
 }: {
   onClose: () => void
   onActivated: (m: ModelsStatus) => void
@@ -55,6 +57,8 @@ export function ModelPanel({
   encoderSels: Record<string, EncoderSel[]> // dense legs: selected encoders (each with its own QR)
   // updater semantics (not a plain setter) so rapid toggles can't clobber each other under batching
   onEncoderSels: (unit: string, update: (cur: EncoderSel[] | undefined) => EncoderSel[]) => void
+  searchOff: Record<string, boolean> // units kept resident but excluded from retrieval legs
+  onSearchOff: (unit: string, off: boolean) => void
 }) {
   const [models, setModels] = useState<ModelsStatus | null>(null)
   const [desired, setDesired] = useState<string[]>([])
@@ -212,6 +216,22 @@ export function ModelPanel({
             </span>
           )}
           {!unit.available && <span className="text-xs italic text-muted">currently not supported</span>}
+          {selected && isRetrieval && (
+            <label
+              className="flex cursor-pointer items-center gap-1 text-xs text-muted"
+              title="participate in retrieval — off keeps the unit resident (doc-fetch/passage text still works) but skips its search leg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={!searchOff[unit.name]}
+                disabled={activating}
+                onChange={(e) => onSearchOff(unit.name, !e.target.checked)}
+                className="accent-teal"
+              />
+              search
+            </label>
+          )}
           {selected && isRetrieval && choices.length === 0 && (
             <QtSelect
               value={

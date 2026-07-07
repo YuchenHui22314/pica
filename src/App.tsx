@@ -27,6 +27,8 @@ export default function App() {
   const [legQueryTypes, setLegQueryTypes] = useState<Record<string, QueryType>>({})
   // per dense unit: which query-encoder ckpts are selected (each with its own query formulation)
   const [encoderSels, setEncoderSels] = useState<Record<string, EncoderSel[]>>({})
+  // units toggled OUT of retrieval (stay resident for doc-fetch; contribute no search leg)
+  const [searchOff, setSearchOff] = useState<Record<string, boolean>>({})
   const [extractPtkb, setExtractPtkb] = useState(true) // auto-learn PTKB on by default
   const [ptkbReload, setPtkbReload] = useState(0)
   const [viewDocid, setViewDocid] = useState<string | null>(null)
@@ -101,7 +103,7 @@ export default function App() {
         update({ error: '无法获取模型状态（后端未连接？）。' })
         return
       }
-      const retrievers = buildSearchLegs(status, encoderSels, legQueryTypes)
+      const retrievers = buildSearchLegs(status, encoderSels, legQueryTypes, searchOff)
       if (retrievers.length === 0) {
         update({ error: '没有激活的检索器。点右上角 Models 激活一个 unit。' })
         return
@@ -264,6 +266,8 @@ export default function App() {
           onActivated={(m) => setModels(m)}
           queryTypes={legQueryTypes}
           onQueryType={(unit, qt) => setLegQueryTypes((m) => ({ ...m, [unit]: qt }))}
+          searchOff={searchOff}
+          onSearchOff={(unit, off) => setSearchOff((m) => ({ ...m, [unit]: off }))}
           encoderSels={encoderSels}
           onEncoderSels={(unit, update) => setEncoderSels((m) => ({ ...m, [unit]: update(m[unit]) }))}
         />

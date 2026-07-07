@@ -131,3 +131,25 @@ describe('buildSearchLegs', () => {
     ])
   })
 })
+
+describe('searchOff (doc-fetch-only units)', () => {
+  it('drops legs of units toggled out of search while keeping others', () => {
+    const models = {
+      units: [
+        { name: 'clueweb_qwen', kind: 'dense', query_encoders: null },
+        { name: 'clueweb_bm25', kind: 'sparse' },
+      ],
+      resident: ['clueweb_qwen', 'clueweb_bm25'],
+      free_ram_gb: 0,
+      free_vram_gb: [],
+    } as never
+    const on = buildSearchLegs(models, {}, {})
+    expect(on.map((l) => l.name)).toEqual(['qwen3', 'BM25'])
+    // BM25 unit stays resident (doc-fetch) but contributes NO retrieval leg
+    const off = buildSearchLegs(models, {}, {}, { clueweb_bm25: true })
+    expect(off.map((l) => l.name)).toEqual(['qwen3'])
+    // dense units can be toggled out too
+    const off2 = buildSearchLegs(models, {}, {}, { clueweb_qwen: true })
+    expect(off2.map((l) => l.name)).toEqual(['BM25'])
+  })
+})

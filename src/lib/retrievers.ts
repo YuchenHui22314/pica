@@ -54,16 +54,20 @@ export function defaultSelections(unit: ModelUnit): EncoderSel[] {
 
 // denseSel maps a dense unit -> its selected encoders (each with a query type); missing -> the
 // unit's default selection. qtByUnit keeps the per-unit query_type choice for sparse/splade legs.
+// searchOff: units the user toggled OUT of retrieval — they stay resident (e.g. the sparse unit
+// keeps serving doc-fetch passage text) but contribute no retrieval leg. Fixes "a resident BM25
+// unit always runs a 1000-doc BM25 search even when you only wanted the dense leg".
 export function buildSearchLegs(
   models: ModelsStatus,
   denseSel: Record<string, EncoderSel[]> = {},
   qtByUnit: Record<string, QueryType> = {},
+  searchOff: Record<string, boolean> = {},
 ): RetrieverLeg[] {
   const unitOf = (name: string) => models.units.find((u) => u.name === name)
   const legs: RetrieverLeg[] = []
   for (const name of models.resident) {
     const u = unitOf(name)
-    if (u?.kind !== 'dense') continue
+    if (u?.kind !== 'dense' || searchOff[name]) continue
     // untouched unit -> its default selection; an explicit empty array means "no legs from it"
     let sels = name in denseSel ? denseSel[name] : defaultSelections(u)
     if (u.query_encoders?.length) {
@@ -81,9 +85,9 @@ export function buildSearchLegs(
     }
   }
   const sparse = models.resident.find((n) => unitOf(n)?.kind === 'sparse')
-  if (sparse) legs.push({ name: 'BM25', query_type: qtByUnit[sparse] ?? 'raw' })
+  if (sparse && !searchOff[sparse]) legs.push({ name: 'BM25', query_type: qtByUnit[sparse] ?? 'raw' })
   const splade = models.resident.find((n) => unitOf(n)?.kind === 'splade')
-  if (splade) legs.push({ name: 'splade_v3', query_type: qtByUnit[splade] ?? 'raw' })
+  if (splade && !searchOff[splade]) legs.push({ name: 'splade_v3', query_type: qtByUnit[splade] ?? 'raw' })
   return legs
 }
 
