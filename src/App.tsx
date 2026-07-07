@@ -263,7 +263,14 @@ export default function App() {
       {showModels && (
         <ModelPanel
           onClose={() => setShowModels(false)}
-          onActivated={(m) => setModels(m)}
+          onActivated={(m) => {
+            setModels(m)
+            // prune stale toggles: a unit evicted (or corpus-swapped) must not silently keep its
+            // search-off state on a later re-activation (codex review)
+            setSearchOff((prev) =>
+              Object.fromEntries(Object.entries(prev).filter(([u]) => m.resident.includes(u))),
+            )
+          }}
           queryTypes={legQueryTypes}
           onQueryType={(unit, qt) => setLegQueryTypes((m) => ({ ...m, [unit]: qt }))}
           searchOff={searchOff}
