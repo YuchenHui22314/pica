@@ -6,7 +6,9 @@ Double-click → SSH tunnel to octal31 → Magpie opens in a dedicated Chrome wi
 
 1. **Get the files** (`magpie.ps1`, `magpie.bat`, `magpie.ico`) into one folder, e.g. `C:\magpie\`.
 
-2. **Set up key auth** (so no password prompts). In PowerShell:
+2. **Set up key auth for octal31** (arcade — a managed Kerberos gateway — rejects pubkey by
+   POLICY, so its password must be typed once per tunnel; the octal31 hop goes password-free).
+   In PowerShell:
 
    ```powershell
    ssh-keygen -t ed25519            # accept defaults; skip if you already have a key
@@ -21,7 +23,8 @@ Double-click → SSH tunnel to octal31 → Magpie opens in a dedicated Chrome wi
 
 ## Use
 
-Double-click the shortcut. First launch opens the tunnel (~2-5 s), then Chrome pops with Magpie.
+Double-click the shortcut. An ssh window opens — **type the arcade password there once and leave
+the window open (it IS the tunnel; minimize it)**. Chrome then pops with Magpie.
 Re-clicking reuses the existing tunnel (idempotent). If the window shows an error:
 - **Tunnel did not come up** → check the two `ssh` hops manually, your network/VPN, and that the
   Magpie server is actually running on octal31 (`http://localhost:8500` there).

@@ -19,9 +19,13 @@ function Test-PortOpen([int]$p) {
 }
 
 # 1) Tunnel: reuse an existing one if the port is already forwarded (idempotent relaunch).
+# The window stays VISIBLE (minimized) because the jump host (arcade, a managed Kerberos gateway)
+# REJECTS pubkey auth by policy — you type arcade's password ONCE there; the octal31 hop is
+# key-authed. The window then IS the tunnel: minimize it, don't close it.
 if (-not (Test-PortOpen $Port)) {
     Write-Host "Opening SSH tunnel  localhost:$Port -> $TargetHost:$Port  (via $Jump) ..."
-    Start-Process -WindowStyle Hidden ssh -ArgumentList @(
+    Write-Host ">> type the arcade password in the ssh window that opens, then leave it open <<"
+    Start-Process -WindowStyle Normal ssh -ArgumentList @(
         "-N",
         "-o", "ExitOnForwardFailure=yes",
         "-o", "ServerAliveInterval=30",
@@ -29,12 +33,12 @@ if (-not (Test-PortOpen $Port)) {
         "-J", $Jump,
         "$User@$TargetHost"
     )
-    $deadline = (Get-Date).AddSeconds(20)
+    $deadline = (Get-Date).AddSeconds(90)   # allow time to type the arcade password
     while (-not (Test-PortOpen $Port)) {
         if ((Get-Date) -gt $deadline) {
-            Write-Error ("Tunnel did not come up in 20s. Check: (1) VPN/network, (2) key auth to " +
-                "$Jump and $TargetHost (run once in a terminal: ssh -J $Jump $User@$TargetHost), " +
-                "(3) the Magpie server is running on $TargetHost port $Port.")
+            Write-Error ("Tunnel did not come up in 90s. Check: (1) VPN/network, (2) you typed the " +
+                "arcade password in the ssh window, (3) the Magpie server is running on " +
+                "$TargetHost port $Port.")
         }
         Start-Sleep -Milliseconds 500
     }
