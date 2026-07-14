@@ -21,20 +21,25 @@ function sameSet(a: string[], b: string[]): boolean {
   return b.every((x) => s.has(x))
 }
 
-function Gauge({ label, used, free }: { label: string; used: number; free: number }) {
+function Gauge({ label, used, free, compact = false }: {
+  label: string
+  used: number
+  free: number
+  compact?: boolean // 4-up GPU row: narrow bar + terse numbers so all fit ONE line
+}) {
   const frac = free > 0 ? Math.min(1, used / free) : used > 0 ? 1 : 0
   const over = used > free
   return (
-    <div className="flex items-center gap-1.5 text-xs">
+    <div className={`flex items-center ${compact ? 'gap-1 text-[11px]' : 'gap-1.5 text-xs'}`}>
       <span className="text-muted">{label}</span>
-      <div className="h-2.5 w-16 overflow-hidden rounded bg-paper ring-1 ring-line">
+      <div className={`h-2.5 overflow-hidden rounded bg-paper ring-1 ring-line ${compact ? 'w-9' : 'w-16'}`}>
         <div
           className={`h-full ${over ? 'bg-red-500' : 'bg-teal'}`}
           style={{ width: `${frac * 100}%` }}
         />
       </div>
-      <span className={over ? 'font-medium text-red-600' : 'text-muted'}>
-        {used.toFixed(0)}/{free.toFixed(0)}G
+      <span className={`whitespace-nowrap ${over ? 'font-medium text-red-600' : 'text-muted'}`}>
+        {used.toFixed(0)}/{free.toFixed(0)}{compact ? '' : 'G'}
       </span>
     </div>
   )
@@ -144,8 +149,19 @@ export function ModelPanel({
       (u) => RETRIEVAL_KINDS.includes(u.kind) && (u.corpus ?? 'other') === corpus,
     )
   const rerankers = (models?.units ?? []).filter((u) => u.kind === 'reranker')
-  const selectedUnits = (models?.units ?? []).filter((u) => desired.includes(u.name))
-  const needRam = selectedUnits.reduce((s, u) => s + u.resident_ram_gb, 0)
+  // RAM the APPLY would still have to allocate: only units not yet resident (or whose load mode
+  // changes -> reload), each costed by its CHOSEN mode (pq_refine int8 is ~half the fp16 figure).
+  // Already-resident unchanged units are excluded - their memory is already inside free_ram_gb.
+  const modeOf = (u: ModelUnit) =>
+    loadModes[u.name] ?? models?.resident_modes?.[u.name] ?? 'ram_fp16'
+  const needRam = (models?.units ?? [])
+    .filter((u) => desired.includes(u.name))
+    .filter(
+      (u) =>
+        !models!.resident.includes(u.name) ||
+        (u.kind === 'dense' && models?.resident_modes?.[u.name] !== modeOf(u)),
+    )
+    .reduce((s, u) => s + (u.load_modes?.[modeOf(u)]?.ram_gb ?? u.resident_ram_gb), 0)
   const GPU_TOTAL = 24 // A5000 24G; used_i = total - free_i
 
   const QtSelect = ({ value, onChange }: { value: QueryType; onChange: (qt: QueryType) => void }) => (
@@ -332,12 +348,14 @@ export function ModelPanel({
           </span>
           {models && (
             <div className="mt-2 space-y-1">
-              <Gauge label="RAM need" used={needRam} free={models.free_ram_gb} />
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="text-xs text-muted">VRAM</span>
-                {models.free_vram_gb.map((free, i) => (
-                  <Gauge key={i} label={`G${i}`} used={Math.max(0, GPU_TOTAL - free)} free={GPU_TOTAL} />
-                ))}
+              <Gauge label="RAM to load" used={needRam} free={models.free_ram_gb} />
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 text-xs text-muted">VRAM</span>
+                <div className="flex flex-1 items-center gap-3">
+                  {models.free_vram_gb.map((free, i) => (
+                    <Gauge key={i} label={`G${i}`} used={Math.max(0, GPU_TOTAL - free)} free={GPU_TOTAL} compact />
+                  ))}
+                </div>
               </div>
             </div>
           )}
