@@ -219,9 +219,6 @@ export default function App() {
           </div>
           <div ref={scrollRef} className="absolute inset-0 z-10 overflow-y-auto px-4 py-6">
             <div className="mx-auto max-w-5xl space-y-6">
-              {msgs.length === 0 && (
-                <p className="text-muted">Ask Magpie anything — it&rsquo;ll fetch the brightest passages.</p>
-              )}
               {msgs.map((m) => (
                 <div key={m.id} id={`turn-${m.id}`} className="scroll-mt-4 space-y-3">
                   <UserBubble text={m.utterance} />
