@@ -20,7 +20,7 @@ function Test-PortOpen([int]$p) {
 
 # 1) Tunnel: reuse an existing one if the port is already forwarded (idempotent relaunch).
 # The window stays VISIBLE (minimized) because the jump host (arcade, a managed Kerberos gateway)
-# REJECTS pubkey auth by policy — you type arcade's password ONCE there; the octal31 hop is
+# REJECTS pubkey auth by policy - you type arcade's password ONCE there; the octal31 hop is
 # key-authed. The window then IS the tunnel: minimize it, don't close it.
 if (-not (Test-PortOpen $Port)) {
     Write-Host "Opening SSH tunnel  localhost:${Port} -> ${TargetHost}:${Port}  (via $Jump) ..."
@@ -44,7 +44,7 @@ if (-not (Test-PortOpen $Port)) {
     }
     Write-Host "Tunnel up."
 } else {
-    Write-Host "Port $Port already forwarded — reusing the existing tunnel."
+    Write-Host "Port $Port already forwarded - reusing the existing tunnel."
 }
 
 # 2) Chrome as a dedicated app window (falls back to the default browser if Chrome is absent).
