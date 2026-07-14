@@ -41,36 +41,45 @@ export function TurnNavigator({
 
   if (turns.length < 2) return null
 
+  const jump = (id: number) =>
+    document.getElementById(`turn-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
   return (
-    <div className="pointer-events-none absolute right-2 top-1/2 z-20 -translate-y-1/2">
-      <div className="pointer-events-auto flex flex-col items-end gap-2 py-2">
-        {turns.map((t, i) => {
-          const on = t.id === (hover ?? active)
-          return (
-            <div key={t.id} className="relative flex items-center">
-              {hover === t.id && (
-                <span className="absolute right-8 max-w-72 whitespace-nowrap rounded-lg bg-paper px-3 py-1.5 text-xs text-ink shadow-lg ring-1 ring-line">
-                  <span className="mr-1.5 text-muted">#{i + 1}</span>
-                  {tickLabel(t.utterance)}
-                </span>
-              )}
-              <button
-                aria-label={`turn ${i + 1}`}
-                onMouseEnter={() => setHover(t.id)}
-                onMouseLeave={() => setHover(null)}
-                onClick={() =>
-                  document
-                    .getElementById(`turn-${t.id}`)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-                className={`h-[3px] rounded-full transition-all duration-150 ${
-                  on ? 'w-7 bg-ink' : 'w-4 bg-line hover:bg-muted'
-                }`}
-              />
-            </div>
-          )
-        })}
-      </div>
+    <div
+      className="absolute right-2 top-1/2 z-20 -translate-y-1/2"
+      onMouseEnter={() => setHover(-1)}
+      onMouseLeave={() => setHover(null)}
+    >
+      {/* collapsed: slim tick column. hovered: the FULL turn list expands (ChatGPT-style). */}
+      {hover === null ? (
+        <div className="flex flex-col items-end gap-2 py-2 pl-4">
+          {turns.map((t, i) => (
+            <button
+              key={t.id}
+              aria-label={`turn ${i + 1}`}
+              onClick={() => jump(t.id)}
+              className={`h-[3px] rounded-full transition-all duration-150 ${
+                t.id === active ? 'w-7 bg-ink' : 'w-4 bg-line'
+              }`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="max-h-[70vh] w-72 overflow-y-auto rounded-2xl bg-paper/95 p-1.5 shadow-xl ring-1 ring-line backdrop-blur">
+          {turns.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => jump(t.id)}
+              className={`block w-full truncate rounded-lg px-3 py-1.5 text-left text-sm transition ${
+                t.id === active ? 'bg-cream font-medium text-ink' : 'text-ink/80 hover:bg-cream'
+              }`}
+              title={t.utterance}
+            >
+              {tickLabel(t.utterance, 48)}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
