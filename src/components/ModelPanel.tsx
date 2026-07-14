@@ -308,6 +308,9 @@ export function ModelPanel({
             nearly free — the backend batches them into one corpus pass). Each row has its own QR. */}
         {selected && choices.length > 0 && (
           <div className="mt-1.5 space-y-1 border-l-2 border-line pl-3">
+            <p className="text-[0.65rem] italic text-muted">
+              encoder &amp; QR choices apply on your NEXT SEARCH directly — no Apply needed
+            </p>
             {choices.map((c) => {
               const on = !!selFor(c)
               return (

@@ -13,6 +13,7 @@ export function corpusLabel(corpus: string | null | undefined): string {
 
 // Formal, properly-cased model name for display (no informal lowercase unit ids).
 export function modelLabel(unit: ModelUnit): string {
+  if (unit.name.includes('mini')) return 'ANCE (mini · smoke test)'
   if (unit.kind === 'reranker') return 'Qwen3-Reranker'
   const n = unit.name.toLowerCase()
   if (n.includes('splade')) return 'SPLADE-v3'
