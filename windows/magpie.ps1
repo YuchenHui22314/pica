@@ -23,7 +23,7 @@ function Test-PortOpen([int]$p) {
 # REJECTS pubkey auth by policy — you type arcade's password ONCE there; the octal31 hop is
 # key-authed. The window then IS the tunnel: minimize it, don't close it.
 if (-not (Test-PortOpen $Port)) {
-    Write-Host "Opening SSH tunnel  localhost:$Port -> $TargetHost:$Port  (via $Jump) ..."
+    Write-Host "Opening SSH tunnel  localhost:${Port} -> ${TargetHost}:${Port}  (via $Jump) ..."
     Write-Host ">> type the arcade password in the ssh window that opens, then leave it open <<"
     Start-Process -WindowStyle Normal ssh -ArgumentList @(
         "-N",
