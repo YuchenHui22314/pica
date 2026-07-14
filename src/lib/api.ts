@@ -9,6 +9,7 @@ import type {
   Session,
   Turn,
   User,
+  DirectoryUser,
 } from './types'
 
 const TOKEN_KEY = 'magpie_token'
@@ -65,6 +66,9 @@ export const api = {
 
   // models / residency
   models: () => req<ModelsStatus>('/models'),
+  register: (username: string, password: string) =>
+    req<{ token: string; user: User }>('/auth/register', post({ username, password })),
+  users: () => req<DirectoryUser[]>('/auth/users'),
   activate: (units: string[], modes?: Record<string, string>) =>
     req<ActivateResponse>('/activate', post({ units, modes: modes ?? {} })),
   activateStatus: (taskId: string) => req<ActivateStatus>(`/activate/status/${taskId}`),

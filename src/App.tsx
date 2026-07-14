@@ -205,6 +205,13 @@ export default function App() {
           <span className="ml-auto text-sm text-muted">{user.username}</span>
           <button
             onClick={signOut}
+            title="sign out and pick another account on the login screen"
+            className="rounded-lg border border-line bg-paper px-3 py-1 text-sm text-muted transition hover:bg-cream hover:text-ink"
+          >
+            Switch user
+          </button>
+          <button
+            onClick={signOut}
             className="rounded-lg border border-line bg-paper px-3 py-1 text-sm text-muted transition hover:bg-cream hover:text-ink"
           >
             Sign out

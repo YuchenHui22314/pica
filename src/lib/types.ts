@@ -1,5 +1,11 @@
 // TypeScript mirror of the Magpie backend schemas (apcir.interactive.search_server / pipeline).
 
+// Public login-screen directory entry (demo account picker) - no ids/hashes.
+export interface DirectoryUser {
+  username: string
+  is_admin: number
+}
+
 export interface User {
   id: number
   username: string
