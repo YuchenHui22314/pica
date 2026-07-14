@@ -10,11 +10,11 @@ Double-click → SSH tunnel to octal31 → Magpie opens in a dedicated Chrome wi
 
    ```powershell
    ssh-keygen -t ed25519            # accept defaults; skip if you already have a key
-   type $Env:USERPROFILE\.ssh\id_ed25519.pub | ssh arcade@iro.umontreal.ca "cat >> ~/.ssh/authorized_keys"
-   type $Env:USERPROFILE\.ssh\id_ed25519.pub | ssh -J arcade@iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca "cat >> ~/.ssh/authorized_keys"
+   type $Env:USERPROFILE\.ssh\id_ed25519.pub | ssh huiyuche@arcade.iro.umontreal.ca "cat >> ~/.ssh/authorized_keys"
+   type $Env:USERPROFILE\.ssh\id_ed25519.pub | ssh -J huiyuche@arcade.iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca "cat >> ~/.ssh/authorized_keys"
    ```
 
-   Verify it's password-free: `ssh -J arcade@iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca hostname` → `octal31`.
+   Verify it's password-free: `ssh -J huiyuche@arcade.iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca hostname` → `octal31`.
 
 3. **Desktop shortcut**: right-click desktop → New → Shortcut → target `C:\magpie\magpie.bat`.
    Then Properties → Change Icon… → browse to `magpie.ico`. Optionally set Run: **Minimized**.
@@ -30,7 +30,7 @@ Re-clicking reuses the existing tunnel (idempotent). If the window shows an erro
 ## What it does (for the curious)
 
 ```
-ssh -N -L 8500:localhost:8500 -J arcade@iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca   (hidden)
+ssh -N -L 8500:localhost:8500 -J huiyuche@arcade.iro.umontreal.ca huiyuche@octal31.iro.umontreal.ca   (hidden)
 chrome --app=http://localhost:8500
 ```
 

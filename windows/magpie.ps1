@@ -2,7 +2,7 @@
 # Requires: Windows 10/11 built-in OpenSSH client; key-based auth to both hops (see README_windows.md).
 param(
     [string]$User = "huiyuche",
-    [string]$Jump = "arcade@iro.umontreal.ca",
+    [string]$Jump = "huiyuche@arcade.iro.umontreal.ca",
     [string]$TargetHost = "octal31.iro.umontreal.ca",
     [int]$Port = 8500
 )
