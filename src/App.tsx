@@ -100,12 +100,12 @@ export default function App() {
       const status = models ?? (await api.models().catch(() => null))
       if (status) setModels(status)
       if (!status) {
-        update({ error: '无法获取模型状态（后端未连接？）。' })
+        update({ error: 'Could not reach the backend — is the server running?' })
         return
       }
       const retrievers = buildSearchLegs(status, encoderSels, legQueryTypes, searchOff)
       if (retrievers.length === 0) {
-        update({ error: '没有激活的检索器。点右上角 Models 激活一个 unit。' })
+        update({ error: 'No active retriever. Open Models (top right) and activate a unit.' })
         return
       }
 

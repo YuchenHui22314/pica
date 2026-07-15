@@ -26,9 +26,9 @@ export function Login({ onLoggedIn }: { onLoggedIn: (user: User) => void }) {
       setToken(token)
       onLoggedIn(user)
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) setError('用户名或密码错误')
-      else if (err instanceof ApiError && err.status === 409) setError('用户名已存在')
-      else setError(mode === 'signin' ? '登录失败，请重试' : '创建账户失败，请重试')
+      if (err instanceof ApiError && err.status === 401) setError('Incorrect username or password')
+      else if (err instanceof ApiError && err.status === 409) setError('Username already taken')
+      else setError(mode === 'signin' ? 'Sign-in failed — please try again' : 'Could not create account — please try again')
     } finally {
       setBusy(false)
     }
